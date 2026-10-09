@@ -1,0 +1,14 @@
+:root {
+  --paper: #fafaf8;
+  --ink: #080808;
+  --muted: #666666;
+  --orange: #ff9b45;
+  --yellow: #ffe2a3;
+  --cream: #f3f1eb;
+  --border: #e6e4de;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --display: 'Anton', Impact, sans-serif;
+  --body: 'Inter', Arial, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --gutter: clamp(22px, 5vw, 88px);
+}
