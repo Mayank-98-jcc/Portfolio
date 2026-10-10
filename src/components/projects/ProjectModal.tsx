@@ -42,7 +42,7 @@ export default function ProjectModal({
         >
           <X size={21} />
         </button>
-        <ProjectArtwork project={project} />
+        <ProjectArtwork project={project} showStatus />
         <div className="modal-content">
           <p className="eyebrow">PROJECT OVERVIEW</p>
           <h2 id="project-modal-title">{project.title}</h2>

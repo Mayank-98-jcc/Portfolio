@@ -5,18 +5,22 @@
   max-height: none;
   overflow: visible;
 }
+.hero-topline {
+  display: none;
+}
 .hero-glow {
   inset: 0;
   filter: none;
   background:
-    radial-gradient(ellipse at 53% 52%, #e8dac5 0%, #ede1d0 24%, #f5edde 43%, transparent 72%),
-    radial-gradient(ellipse at 74% 48%, #ffe2a340, transparent 55%);
+    radial-gradient(ellipse at 53% 52%, #e8dac5 0%, #ede1d0 24%, #f5edde80 52%, transparent 74%),
+    radial-gradient(ellipse at 72% 60%, #ffd49a99, transparent 55%),
+    radial-gradient(ellipse at 27% 56%, #ffe7b399, transparent 52%);
   mask-image: none;
 }
 .hero-greeting {
-  top: 38px;
+  top: -35px;
   left: 50%;
-  font-size: clamp(128px, 15vw, 225px);
+  font-size: clamp(128px, 17.5vw, 280px);
   line-height: 1.22;
   letter-spacing: -0.045em;
   width: max-content;
@@ -24,7 +28,7 @@
 }
 .hero-portrait {
   left: 54%;
-  top: 196px;
+  top: 217px;
   width: min(57vw, 760px);
   mask-image: none;
 }
@@ -38,7 +42,8 @@
   max-width: 40%;
   letter-spacing: -0.025em;
 }
-.name-line {
+.hero-name > span.name-line {
+  display: block;
   padding: 0.035em 0.07em 0.1em;
   margin: -0.035em -0.07em -0.1em;
   line-height: 1.13;
@@ -65,17 +70,29 @@
   font-size: clamp(29px, 2.7vw, 40px);
 }
 .role-asterisk {
-  font-size: 40px;
-  width: 40px;
-  margin-bottom: 13px;
+  font-size: 36px;
+  width: 36px;
+  margin-bottom: 18px;
 }
 .role-caption {
   font-size: 22px;
   max-width: 185px;
+  margin-top: 18px;
+  text-wrap: balance;
 }
 .hero-bottom {
   bottom: 22px;
   z-index: 6;
+}
+.hero-study {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+.hero-study > span {
+  color: #555;
 }
 @media (min-width: 1101px) and (max-height: 850px) {
   .hero {
@@ -83,11 +100,11 @@
     min-height: 709px;
   }
   .hero-greeting {
-    top: 27px;
-    font-size: 15vw;
+    top: -30px;
+    font-size: 17.5vw;
   }
   .hero-portrait {
-    top: 179px;
+    top: 196px;
     width: min(57vw, 700px);
   }
   .hero-name {
@@ -98,10 +115,17 @@
     top: 35%;
   }
   .hero-note {
-    top: 34%;
+    top: 33%;
   }
   .hero-role {
-    bottom: 106px;
+    bottom: 100px;
+  }
+  .hero-study {
+    gap: 12px;
+    font-size: 11px;
+  }
+  .hero-study > span {
+    padding-left: 12px;
   }
 }
 @media (min-width: 761px) and (max-width: 1100px) {
@@ -110,11 +134,11 @@
     min-height: 780px;
   }
   .hero-greeting {
-    top: 55px;
-    font-size: 16.6vw;
+    top: -8px;
+    font-size: 19vw;
   }
   .hero-portrait {
-    top: 217px;
+    top: 218px;
     left: 51%;
     width: 74vw;
   }
@@ -142,6 +166,21 @@
   .role-caption {
     font-size: 18px;
   }
+  .hero-study {
+    font-size: 10px;
+    gap: 16px;
+  }
+  .hero-study > span {
+    padding-left: 16px;
+  }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  /* Give the darker, more visible shoulders room between the two text columns. */
+  .hero-portrait {
+    left: 50%;
+    top: 230px;
+    width: 64vw;
+  }
 }
 @media (max-width: 760px) {
   .hero {
@@ -157,7 +196,7 @@
   .hero-greeting {
     top: auto;
     left: auto;
-    margin: 23px 0 0;
+    margin: 18px 0 0;
     align-self: center;
     font-size: clamp(70px, 20vw, 145px);
     max-width: 100%;
@@ -166,8 +205,8 @@
   .hero-portrait {
     top: auto;
     left: auto;
-    margin: -7px -18px -10px;
-    width: calc(100% + 36px);
+    margin: -3px -12px -10px;
+    width: calc(100% + 24px);
     max-width: 560px;
   }
   .hero-name {
@@ -178,6 +217,9 @@
   }
   .hero-name .hero-iam {
     font-size: 0.4em;
+  }
+  .hero-name > span.name-line {
+    line-height: 1.02;
   }
   .hero-availability {
     top: auto;
@@ -206,8 +248,16 @@
   .role-caption {
     font-size: 15px;
     max-width: 112px;
+    margin-top: 0;
   }
   .hero-bottom {
     bottom: auto;
+    flex-wrap: wrap;
+    row-gap: 18px;
+  }
+  .hero-study {
+    order: 3;
+    width: 100%;
+    justify-content: center;
   }
 }

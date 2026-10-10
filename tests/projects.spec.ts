@@ -93,3 +93,48 @@ test('a failed screenshot and fallback still leave the project usable', async ({
   await expect(card.locator('.project-artwork img')).toHaveCount(0);
   await expect(card.getByRole('link', { name: 'Live Demo: OceanXplore' })).toBeVisible();
 });
+
+test('CodeMentor can adopt a real screenshot without changing its development status', async ({
+  page,
+}) => {
+  // Exercise a future content update only in this test's browser; production keeps its concept.
+  await page.route('**/src/data/projects.ts*', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text())
+      .replace(
+        /image: ["']\/images\/projects\/codementor-ai\/concept.svg["']/,
+        'image: "/images/projects/codementor-ai/preview-test.png"',
+      )
+      .replace(/imageKind: ["']concept["']/, 'imageKind: "screenshot"');
+    await route.fulfill({ response, body });
+  });
+  await page.route('**/images/projects/codementor-ai/preview-test.png', (route) =>
+    route.fulfill({
+      path: 'public/images/projects/resumeiq/preview.png',
+      contentType: 'image/png',
+    }),
+  );
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const card = page.locator('[data-project="codementor-ai"]');
+  await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.preview-screenshot img')).toBeVisible();
+  await expect(card.locator('.project-status')).toHaveText('In Progress');
+  await expect(card.getByRole('link', { name: /Live Demo/ })).toHaveCount(0);
+  await expect(card.locator('.project-description')).toContainText('under development');
+  await card.getByRole('button', { name: 'View CodeMentor AI project details' }).click();
+  const modal = page.getByRole('dialog');
+  await expect(modal.locator('.preview-screenshot img')).toBeVisible();
+  await expect(modal.locator('.preview-screenshot')).not.toHaveCSS('padding', '0px');
+  await expect(modal.getByRole('link', { name: 'Open full screenshot' })).toHaveAttribute(
+    'href',
+    '/images/projects/codementor-ai/preview-test.png',
+  );
+  await expect(modal.getByRole('link', { name: 'View Live Project' })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.route('**/images/projects/codementor-ai/preview-test.png', (route) => route.abort());
+  await page.reload();
+  await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.code-concept')).toBeVisible();
+  await expect(card.locator('.project-status')).toHaveText('In Progress');
+});

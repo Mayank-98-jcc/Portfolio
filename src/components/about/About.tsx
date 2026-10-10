@@ -12,13 +12,13 @@ export function About() {
         <div>
           <h2 id="about-title" className="display-heading">
             <span className="editorial-line">
-              <span>CURIOUS</span>
+              <span>TURNING</span>
             </span>
             <span className="editorial-line">
-              <span>BY NATURE.</span>
+              <span>IDEAS INTO</span>
             </span>
             <span className="editorial-line">
-              <span className="serif">Builder by choice.</span>
+              <span className="serif">REALITY</span>
             </span>
           </h2>
           <div className="about-copy" data-reveal>

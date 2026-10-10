@@ -9,18 +9,21 @@
 }
 .hero-portrait-media {
   isolation: isolate;
+  /* Keep the uniformly scaled video inside its scene, including during entrance. */
+  overflow: clip;
   background: #e9dfd0;
   mask-image:
     linear-gradient(to right, transparent, #000 19%, #000 81%, transparent),
-    linear-gradient(transparent, #000 4%, #000 69%, transparent 100%);
+    linear-gradient(transparent, #000 4%, #000 80%, #000d 87%, transparent 96%),
+    radial-gradient(ellipse 75% 100% at 50% 65%, #000 65%, transparent 100%);
   mask-composite: intersect;
 }
 .hero-portrait .hero-portrait-poster {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  inset: 0 12.5%;
+  width: 75%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   clip-path: none;
   opacity: 1;
   mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
@@ -43,7 +46,7 @@
   /* Only the outer studio backdrop is softened. Preserve hair and ear pixels. */
   mask-image:
     linear-gradient(to right, transparent, #000 13%, #000 87%, transparent),
-    linear-gradient(transparent, #000 1.5%, #000 88%, transparent 100%);
+    linear-gradient(transparent, #000 1.5%, #000 92%, transparent 100%);
   mask-composite: intersect;
 }
 .portrait-video-0 {

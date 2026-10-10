@@ -3,15 +3,21 @@ import { useState } from 'react';
 import { Code2, FileText, Globe2 } from 'lucide-react';
 import type { Project } from '../../types/project';
 const fallbackIcons = { resumeiq: FileText, oceanxplore: Globe2, 'codementor-ai': Code2 };
-export function ProjectArtwork({ project }: { project: Project }) {
+export function ProjectArtwork({
+  project,
+  showStatus = false,
+}: {
+  project: Project;
+  showStatus?: boolean;
+}) {
   const [stage, setStage] = useState<'primary' | 'fallback' | 'unavailable'>('primary');
   const isScreenshot = project.imageKind === 'screenshot' && stage === 'primary';
   const FallbackIcon = fallbackIcons[project.id as keyof typeof fallbackIcons] ?? Code2;
-  if (project.imageKind === 'concept')
+  if (project.imageKind === 'concept' || (project.id === 'codementor-ai' && stage !== 'primary'))
     return (
-      <div className="project-artwork artwork-codementor-ai">
+      <div className="project-artwork artwork-codementor-ai preview-concept">
         <ProjectConcept />
-        <span className="concept-status">In Progress</span>
+        {showStatus && <span className="concept-status">{project.status}</span>}
       </div>
     );
   return (

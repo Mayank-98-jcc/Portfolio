@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import type { CSSProperties } from 'react';
 import { heroVideo } from '../../data/hero';
 import type { HeroVideoConfig } from '../../data/hero';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -36,7 +35,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
     let disposed = false;
     let transitioning = false;
     let generation = 0;
-    let fadeTimer: ReturnType<typeof setTimeout> | undefined;
+    let resetTimer: ReturnType<typeof setTimeout> | undefined;
     const shouldPlay = () => !disposed && inView && document.visibilityState === 'visible';
 
     function cancelFrame(index: number) {
@@ -121,7 +120,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
           if (!shouldPlay() || token !== generation) return;
           afterFrame(next, () => {
             if (!shouldPlay() || token !== generation) return;
-            // Hold the outgoing final frame so its native loop cannot flash frame zero mid-fade.
+            // Hold the outgoing frame until the new decoder has painted.
             clips[outgoing].pause();
             cancelFrame(outgoing);
             active = next;
@@ -129,7 +128,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
             incoming.style.opacity = '1';
             reveal(next);
             watch(next);
-            fadeTimer = setTimeout(() => {
+            resetTimer = setTimeout(() => {
               if (disposed || token !== generation) return;
               clips[outgoing].style.opacity = '0';
               clips[outgoing].currentTime = 0;
@@ -157,7 +156,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
     function suspend() {
       generation++;
       transitioning = false;
-      clearTimeout(fadeTimer);
+      clearTimeout(resetTimer);
       clips.forEach((clip, index) => {
         clip.style.opacity = index === active ? '1' : '0';
         clip.style.zIndex = index === topSlot ? '2' : '1';
@@ -243,17 +242,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
       <div className="portrait-scroll-layer">
         <div className="portrait-pointer-layer">
           <div className="portrait-reveal-layer">
-            <div
-              ref={surface}
-              className="hero-portrait-media"
-              data-state="poster"
-              data-active="0"
-              style={
-                {
-                  '--portrait-reveal': `${config.revealMs}ms`,
-                } as CSSProperties
-              }
-            >
+            <div ref={surface} className="hero-portrait-media" data-state="poster" data-active="0">
               <img
                 className="hero-portrait-poster"
                 src={config.poster}

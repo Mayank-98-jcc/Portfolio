@@ -192,7 +192,7 @@ test('resizing preserves playback, layout and a restrained portrait cursor', asy
     await page.setViewportSize({ width, height: 1000 });
     await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
     const bounds = await page.locator('.hero-portrait').boundingBox();
-    expect(bounds!.width / bounds!.height).toBeCloseTo(1, 1);
+    expect(bounds!.width / bounds!.height).toBeCloseTo(4 / 3, 1);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
     ).toBeTruthy();
@@ -203,30 +203,119 @@ test('resizing preserves playback, layout and a restrained portrait cursor', asy
   await expect(page.locator('.custom-cursor')).not.toHaveAttribute('data-mode', 'view');
 });
 
-test('moving silhouette follows decoded frames while the face remains opaque', async ({ page }) => {
+test('natural footage stays opaque without silhouette outlines or outline downloads', async ({
+  page,
+}) => {
+  const outlines: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('.mask.json')) outlines.push(request.url());
+  });
   await page.goto('/');
-  await expect(page.locator(firstVideo)).toHaveAttribute('data-masked', 'true');
   await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
   await page.waitForTimeout(4500);
   await expect(page.locator('.portrait-video-surface')).toHaveCSS('opacity', '1');
-  await expect(page.locator('.portrait-video-surface')).toHaveCSS('mask-image', 'none');
   await expect(page.locator(firstVideo)).toHaveCSS('opacity', '1');
-  const outline = await page.locator(firstVideo).evaluate((v) => v.style.clipPath);
-  expect(outline.startsWith('polygon(')).toBeTruthy();
+  await expect(page.locator(firstVideo)).toHaveCSS('clip-path', 'none');
+  await expect(page.locator('.hero-portrait-poster')).toHaveCSS('clip-path', 'none');
   await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
-    v.currentTime = 7;
+    v.currentTime = 8;
   });
-  await expect
-    .poll(() => page.locator(firstVideo).evaluate((v) => v.style.clipPath))
-    .not.toBe(outline);
+  await expect(page.locator(firstVideo)).toHaveCSS('clip-path', 'none');
+  expect(outlines).toEqual([]);
 });
 
-test('unavailable outline tracks retain native playback and a perimeter mask', async ({ page }) => {
-  await page.route('**/videos/*.mask.json', (route) => route.abort());
+test('clip handoff never blends two faces or changes the scene dimensions', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
-  await expect(page.locator(firstVideo)).not.toHaveAttribute('data-masked');
-  expect(await page.locator(firstVideo).evaluate((v) => getComputedStyle(v).maskImage)).toContain(
-    'radial-gradient',
-  );
+  const before = await page.locator('.hero-portrait').boundingBox();
+  await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
+    v.currentTime = 8;
+  });
+  await expect(page.locator(secondVideo)).toHaveAttribute('src');
+  const samples = await page.evaluate(async () => {
+    const values: number[][] = [];
+    const until = performance.now() + 3000;
+    while (performance.now() < until) {
+      values.push(
+        Array.from(document.querySelectorAll('.portrait-video'), (v) =>
+          Number(getComputedStyle(v).opacity),
+        ),
+      );
+      await new Promise(requestAnimationFrame);
+    }
+    return values;
+  });
+  await expect(page.locator(surface)).toHaveAttribute('data-active', '1');
+  expect(
+    samples.every((pair) => pair.every((opacity) => opacity === 0 || opacity === 1)),
+  ).toBeTruthy();
+  const after = await page.locator('.hero-portrait').boundingBox();
+  expect(after!.width).toBe(before!.width);
+  expect(after!.height).toBe(before!.height);
+});
+
+test('hero typography fits at all requested viewports with compact mobile name lines', async ({
+  page,
+}, testInfo) => {
+  test.skip(!['desktop-chrome', 'desktop-webkit'].includes(testInfo.project.name));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  for (const [width, height] of [
+    [1440, 900],
+    [1280, 800],
+    [1024, 768],
+    [768, 1024],
+    [390, 844],
+    [320, 740],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => document.fonts.ready);
+    const geometry = await page.evaluate(() => {
+      const greeting = document.querySelector('.hero-greeting')!.getBoundingClientRect();
+      const lines = [...document.querySelectorAll('.name-line-inner')].map((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const text = range.getBoundingClientRect();
+        const clip = el.parentElement!.getBoundingClientRect();
+        // Range bounds include Anton's generous unused ascender/descender space.
+        // Compare actual painted glyph bounds, not that invisible font padding.
+        const style = getComputedStyle(el);
+        const context = document.createElement('canvas').getContext('2d')!;
+        context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const metrics = context.measureText(el.textContent!.trim());
+        const baseline = text.top + metrics.fontBoundingBoxAscent;
+        const top = baseline - metrics.actualBoundingBoxAscent;
+        const bottom = baseline + metrics.actualBoundingBoxDescent;
+        return {
+          left: text.left,
+          right: text.right,
+          top,
+          bottom,
+          clipped:
+            text.left < clip.left - 1 ||
+            text.right > clip.right + 1 ||
+            top < clip.top - 1 ||
+            bottom > clip.bottom + 1,
+        };
+      });
+      return {
+        overflow: document.documentElement.scrollWidth > innerWidth,
+        greeting: { left: greeting.left, right: greeting.right },
+        lines,
+      };
+    });
+    expect(geometry.overflow, `${width}: page overflow`).toBe(false);
+    expect(geometry.greeting.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.greeting.right).toBeLessThanOrEqual(width);
+    for (const line of geometry.lines) {
+      expect(line.left).toBeGreaterThanOrEqual(0);
+      expect(line.right).toBeLessThanOrEqual(width);
+      expect(line.clipped, `${width}: clipped name`).toBe(false);
+    }
+    if (width <= 760) {
+      expect(geometry.lines[1].top - geometry.lines[0].bottom).toBeLessThan(30);
+      expect(geometry.lines[2].top - geometry.lines[1].bottom).toBeLessThan(20);
+    }
+    await expect(page.locator('.hero-study')).toBeVisible();
+  }
 });

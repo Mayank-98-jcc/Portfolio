@@ -1,4 +1,3 @@
-import { ProjectConcept } from './ProjectConcept';
 import { lazy, Suspense, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { projects } from '../../data/projects';
@@ -46,11 +45,7 @@ export function Projects() {
                 setSelected(project);
               }}
             >
-              {project.imageKind === 'screenshot' ? (
-                <ProjectArtwork project={project} />
-              ) : (
-                <ProjectConcept />
-              )}
+              <ProjectArtwork project={project} />
               <span className="project-hover">
                 VIEW PROJECT <ArrowUpRight size={17} />
               </span>
@@ -81,6 +76,7 @@ export function Projects() {
                 <ArrowUpRight size={22} />
               </button>
             </div>
+            <p className="project-description">{project.description}</p>
             <div className="project-foot">
               <span
                 className={`project-status ${project.status === 'In Progress' ? 'in-progress' : ''}`}
@@ -89,7 +85,7 @@ export function Projects() {
                 {project.status}
               </span>
               <span>{project.technologies.slice(0, 3).join(' / ')}</span>
-              {project.demo && (
+              {project.demo && project.status === 'Completed' && (
                 <a
                   href={project.demo}
                   target="_blank"

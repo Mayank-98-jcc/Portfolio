@@ -1,4 +1,21 @@
 /* Shared editorial rhythm for the story below the portrait. */
+@media (min-width: 761px) {
+  .work-section {
+    padding-block: 80px;
+  }
+  .about-section {
+    padding-top: 80px;
+  }
+  .process-section + .skills-section {
+    padding-top: 72px;
+  }
+  .skills-section {
+    padding-bottom: 64px;
+  }
+  .education-section {
+    padding-top: 32px;
+  }
+}
 .editorial-line {
   display: block;
   overflow: hidden;
