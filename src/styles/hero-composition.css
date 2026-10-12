@@ -1,5 +1,7 @@
 /* The portrait's warm studio background is part of the composition. */
 .hero {
+  --greeting-size: clamp(128px, 16vw, 256px);
+  --portrait-top: 217px;
   height: clamp(680px, calc(100svh - 91px), 880px);
   min-height: 680px;
   max-height: none;
@@ -9,7 +11,8 @@
   display: none;
 }
 .hero-glow {
-  inset: 0;
+  /* Leave room for the existing ±12px pointer parallax without widening the page. */
+  inset: 0 12px;
   filter: none;
   background:
     radial-gradient(ellipse at 53% 52%, #e8dac5 0%, #ede1d0 24%, #f5edde80 52%, transparent 74%),
@@ -18,18 +21,22 @@
   mask-image: none;
 }
 .hero-greeting {
-  top: -35px;
+  top: 0;
   left: 50%;
-  font-size: clamp(128px, 17.5vw, 280px);
+  font-size: var(--greeting-size);
   line-height: 1.22;
   letter-spacing: -0.045em;
   width: max-content;
   max-width: calc(100% - 2 * var(--gutter));
+  /* The video has an opaque studio backdrop, not an alpha cutout. Keep the
+     complete serif above that backdrop; its painted letters remain above/left of the head. */
+  z-index: 4;
 }
 .hero-portrait {
   left: 54%;
-  top: 217px;
-  width: min(57vw, 760px);
+  /* Position the shared scene, so both clips and the poster keep the same anchor. */
+  top: var(--portrait-top);
+  width: min(54vw, 720px);
   mask-image: none;
 }
 .portrait-reveal-layer {
@@ -96,16 +103,12 @@
 }
 @media (min-width: 1101px) and (max-height: 850px) {
   .hero {
+    --portrait-top: 189px;
     height: 709px;
     min-height: 709px;
   }
-  .hero-greeting {
-    top: -30px;
-    font-size: 17.5vw;
-  }
   .hero-portrait {
-    top: 196px;
-    width: min(57vw, 700px);
+    width: min(54vw, 665px);
   }
   .hero-name {
     bottom: 108px;
@@ -130,17 +133,14 @@
 }
 @media (min-width: 761px) and (max-width: 1100px) {
   .hero {
+    --greeting-size: 19vw;
+    --portrait-top: 200px;
     height: 780px;
     min-height: 780px;
   }
-  .hero-greeting {
-    top: -8px;
-    font-size: 19vw;
-  }
   .hero-portrait {
-    top: 218px;
     left: 51%;
-    width: 74vw;
+    width: 70vw;
   }
   .hero-name {
     font-size: 8.1vw;
@@ -175,10 +175,12 @@
   }
 }
 @media (min-width: 761px) and (max-width: 900px) {
+  .hero {
+    --portrait-top: 210px;
+  }
   /* Give the darker, more visible shoulders room between the two text columns. */
   .hero-portrait {
     left: 50%;
-    top: 230px;
     width: 64vw;
   }
 }
@@ -205,7 +207,7 @@
   .hero-portrait {
     top: auto;
     left: auto;
-    margin: -3px -12px -10px;
+    margin: 6px -12px -10px;
     width: calc(100% + 24px);
     max-width: 560px;
   }

@@ -23,7 +23,7 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
       // Uniform framing correction counteracts the source camera push-in.
       // No facial warping, silhouette extraction, or pixel processing.
       const scale = framing.startScale + (framing.endScale - framing.startScale) * progress;
-      clips[index].style.transform = `scale(${scale.toFixed(4)})`;
+      clips[index].style.transform = `translateY(${framing.offsetY}%) scale(${scale.toFixed(4)})`;
     }
 
     const failed = [false, false];
@@ -73,6 +73,8 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
       video.muted = true;
       video.defaultMuted = true;
       video.volume = 0;
+      video.defaultPlaybackRate = config.framing[index].playbackRate;
+      video.playbackRate = config.framing[index].playbackRate;
       // Metadata for the first clip; prepare the standby only near the handoff.
       video.preload = index === active ? 'metadata' : 'auto';
       video.src = sources[index];
@@ -82,6 +84,15 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
     function reveal(index: number) {
       if (container!.dataset.active !== String(index)) container!.dataset.active = String(index);
       if (container!.dataset.state !== 'playing') container!.dataset.state = 'playing';
+    }
+
+    function restart(index: number) {
+      // Native loop uses the file's full duration, including the unsafe source tail.
+      clips[index].currentTime = 0;
+      // Keep the held frame's scale until afterFrame receives the decoded start frame.
+      clips[index].play().catch(() => {
+        if (!disposed && active === index) container!.dataset.state = 'poster';
+      });
     }
 
     function watch(index: number) {
@@ -94,8 +105,9 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
         const remaining =
           Math.min(current.duration, config.framing[index].endSeconds) - current.currentTime;
         if (Number.isFinite(remaining) && remaining <= config.preloadAheadSeconds) load(next);
-        if (!transitioning && !failed[next] && clips[next].readyState >= 2 && remaining <= 0.08) {
-          handoff(next);
+        if (!transitioning && remaining <= 0.08) {
+          if (!failed[next] && clips[next].readyState >= 2) handoff(next);
+          else restart(index);
         }
         watch(index);
       });
@@ -107,6 +119,9 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
       const token = ++generation;
       const outgoing = active;
       const incoming = clips[next];
+      // Freeze on the safe outgoing frame even if the incoming decoder stalls.
+      clips[outgoing].pause();
+      cancelFrame(outgoing);
       incoming.currentTime = 0;
       updateFraming(next, 0);
       // Keep the outgoing frame until the next decoder is ready; never mix two faces.
@@ -140,7 +155,8 @@ export function HeroPortraitVideo({ config = heroVideo }: { config?: HeroVideoCo
           if (disposed || token !== generation) return;
           failed[next] = true;
           transitioning = false;
-          // The healthy clip keeps its native loop if the standby cannot play.
+          // Retry the healthy take within its safe range if the standby cannot play.
+          if (shouldPlay()) restart(outgoing);
         });
     }
 

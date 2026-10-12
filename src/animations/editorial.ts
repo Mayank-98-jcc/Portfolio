@@ -16,11 +16,13 @@ export function heroEntrance(timeline: gsap.core.Timeline, start: number) {
     .from(
       '.portrait-reveal-layer',
       {
-        clipPath: 'inset(100% 0 0 0)',
+        // A top-edge wipe slices through the head while the video is already playing.
+        // Move the complete scene instead; scroll and pointer motion own other wrappers.
+        y: 14,
         scale: 1.03,
         opacity: 0,
         duration: 1.3,
-        clearProps: 'clipPath',
+        clearProps: 'transform,opacity',
       },
       start + 0.35,
     )

@@ -100,7 +100,7 @@ test('a missing continuation keeps the first healthy clip looping', async ({ pag
   await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
   // Seek near the boundary to exercise failure handling without a ten-second test delay.
   await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
-    v.currentTime = 9.2;
+    v.currentTime = 5.2;
   });
   await expect
     .poll(() => page.locator(secondVideo).evaluate((v: HTMLVideoElement) => !!v.error))
@@ -218,7 +218,7 @@ test('natural footage stays opaque without silhouette outlines or outline downlo
   await expect(page.locator(firstVideo)).toHaveCSS('clip-path', 'none');
   await expect(page.locator('.hero-portrait-poster')).toHaveCSS('clip-path', 'none');
   await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
-    v.currentTime = 8;
+    v.currentTime = 5;
   });
   await expect(page.locator(firstVideo)).toHaveCSS('clip-path', 'none');
   expect(outlines).toEqual([]);
@@ -229,7 +229,7 @@ test('clip handoff never blends two faces or changes the scene dimensions', asyn
   await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
   const before = await page.locator('.hero-portrait').boundingBox();
   await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
-    v.currentTime = 8;
+    v.currentTime = 5;
   });
   await expect(page.locator(secondVideo)).toHaveAttribute('src');
   const samples = await page.evaluate(async () => {
@@ -318,4 +318,92 @@ test('hero typography fits at all requested viewports with compact mobile name l
     }
     await expect(page.locator('.hero-study')).toBeVisible();
   }
+});
+
+test('the whole head clears the masks throughout entrance and the first ten seconds', async ({
+  page,
+}) => {
+  test.setTimeout(20000);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const samples = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 650;
+    canvas.height = 140;
+    const context = canvas.getContext('2d', { willReadFrequently: true })!;
+    const samples: { clip: string; headroom: number; sourceTop: number; active: string }[] = [];
+    const until = performance.now() + 10800;
+    while (performance.now() < until) {
+      const scene = document.querySelector<HTMLElement>('.hero-portrait-media')!;
+      const video = scene.querySelector<HTMLVideoElement>(
+        `.portrait-video-${scene.dataset.active}`,
+      )!;
+      if (video.readyState >= 2 && scene.dataset.state === 'playing') {
+        // Inspect the actual decoded asset: dark hair against its light studio backdrop.
+        // This catches source cropping as well as a CSS crop; outer box sizes alone cannot.
+        context.drawImage(video, 300, 0, 650, 140, 0, 0, 650, 140);
+        const pixels = context.getImageData(0, 0, 650, 140).data;
+        let top = 140;
+        for (let y = 0; y < 140; y++) {
+          let hairPixels = 0;
+          for (let x = 0; x < 650; x++) {
+            const i = (y * 650 + x) * 4;
+            if (pixels[i] < 150 && pixels[i + 1] < 150 && pixels[i + 2] < 150) hairPixels++;
+          }
+          if (hairPixels > 2) {
+            top = y;
+            break;
+          }
+        }
+        const bounds = scene.getBoundingClientRect();
+        const media = video.getBoundingClientRect();
+        const reveal = scene.closest('.portrait-reveal-layer')!;
+        samples.push({
+          clip: getComputedStyle(reveal).clipPath,
+          // Both source and CSS use the same vertical extent (cover crops only the sides).
+          headroom:
+            (media.top + (top / video.videoHeight) * media.height - bounds.top) / bounds.height,
+          sourceTop: top,
+          active: scene.dataset.active!,
+        });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return samples;
+  });
+  expect(samples.length).toBeGreaterThan(70);
+  for (const sample of samples) {
+    expect(sample.clip, 'entrance must never wipe a hard edge across the head').toBe('none');
+    expect(sample.sourceTop, 'source hair must not touch the encoded frame edge').toBeGreaterThan(
+      10,
+    );
+    expect(sample.headroom, 'hair must clear the outer mask’s top 4% fade').toBeGreaterThan(0.04);
+  }
+  await expect(page.locator(surface)).toHaveAttribute('data-active', '1');
+});
+
+test('a delayed incoming decoder holds a safely framed outgoing portrait', async ({ page }) => {
+  await page.addInitScript(() => {
+    const nativePlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      if (this.src.includes('portrait-02.mp4')) return new Promise<void>(() => {});
+      return nativePlay.call(this);
+    };
+  });
+  await page.goto('/');
+  await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
+  await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => {
+    v.currentTime = 5;
+  });
+  await expect
+    .poll(() => page.locator(firstVideo).evaluate((v: HTMLVideoElement) => v.paused))
+    .toBe(true);
+  const held = await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => v.currentTime);
+  expect(held).toBeGreaterThan(5.8);
+  expect(held).toBeLessThan(6.1);
+  await page.waitForTimeout(1200);
+  expect(await page.locator(firstVideo).evaluate((v: HTMLVideoElement) => v.currentTime)).toBe(
+    held,
+  );
+  await expect(page.locator(surface)).toHaveAttribute('data-state', 'playing');
+  await expect(page.locator(firstVideo)).toHaveCSS('opacity', '1');
 });

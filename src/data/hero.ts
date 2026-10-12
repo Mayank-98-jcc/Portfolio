@@ -4,11 +4,13 @@ export const heroVideo = {
   // Order confirmed by Mayank: Professional_portrait_animation, then Create_professional_portrait_vid.
   first: '/videos/mayank-portrait-01.mp4',
   second: '/videos/mayank-portrait-02.mp4',
-  // Keep both full clips and their natural studio backgrounds. Counter the
-  // baked-in camera push-ins to keep apparent head size steady at the cuts.
+  // The first source's push-in reaches the top edge near its end. Use its safe
+  // first six seconds at 0.6x to retain a ten-second take without cropped frames
+  // or the sideways head turn immediately before the cut to the second take.
+  // Match head size at the cuts and leave clearance above the perimeter mask.
   framing: [
-    { endSeconds: 10, startScale: 1.15, endScale: 0.84 },
-    { endSeconds: 10, startScale: 1, endScale: 0.89 },
+    { endSeconds: 6, playbackRate: 0.6, startScale: 1.15, endScale: 0.94, offsetY: 1.5 },
+    { endSeconds: 10, playbackRate: 1, startScale: 1, endScale: 0.89, offsetY: 1 },
   ],
   poster: siteConfig.portrait,
   posterSrcSet:
@@ -27,4 +29,11 @@ export type HeroVideoConfig = {
   preloadAheadSeconds: number;
 };
 
-type PortraitFraming = { endSeconds: number; startScale: number; endScale: number };
+type PortraitFraming = {
+  endSeconds: number;
+  playbackRate: number;
+  startScale: number;
+  endScale: number;
+  /** Percentage of the scene height, independent of viewport size. */
+  offsetY: number;
+};
