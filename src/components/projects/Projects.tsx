@@ -3,9 +3,11 @@ import { ArrowUpRight } from 'lucide-react';
 import { projects } from '../../data/projects';
 import { socials } from '../../data/socials';
 import type { Project } from '../../types/project';
+import { useProjectTilt } from '../../hooks/useProjectTilt';
 import { ProjectArtwork } from './ProjectArtwork';
 const ProjectModal = lazy(() => import('./ProjectModal'));
 export function Projects() {
+  const tilt = useProjectTilt();
   const [selected, setSelected] = useState<Project | null>(null);
 
   return (
@@ -36,20 +38,22 @@ export function Projects() {
             key={project.id}
             data-reveal
           >
-            <button
-              className="project-image-button"
-              data-cursor="view"
-              aria-label={`View ${project.title} project details`}
-              onClick={(event) => {
-                event.currentTarget.focus({ preventScroll: true });
-                setSelected(project);
-              }}
-            >
-              <ProjectArtwork project={project} />
-              <span className="project-hover">
-                VIEW PROJECT <ArrowUpRight size={17} />
-              </span>
-            </button>
+            <div className="project-tilt" {...tilt}>
+              <button
+                className="project-image-button"
+                data-cursor="view"
+                aria-label={`View ${project.title} project details`}
+                onClick={(event) => {
+                  event.currentTarget.focus({ preventScroll: true });
+                  setSelected(project);
+                }}
+              >
+                <ProjectArtwork project={project} />
+                <span className="project-hover">
+                  VIEW PROJECT <ArrowUpRight size={17} />
+                </span>
+              </button>
+            </div>
             <div className="project-meta">
               <span className="project-number">0{index + 1}</span>
               <div>

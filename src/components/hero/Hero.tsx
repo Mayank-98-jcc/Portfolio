@@ -1,11 +1,17 @@
+import { useState } from 'react';
+import { HeroEnvironment } from './HeroEnvironment';
+import { HeroIntro } from './HeroIntro';
+import { Button, ButtonLink } from '../ui/Button';
 import { HeroPortraitVideo } from './HeroPortraitVideo';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { socials } from '../../data/socials';
 export function Hero() {
+  const [introOpen, setIntroOpen] = useState(false);
   return (
     <section id="home" className="hero" aria-labelledby="hero-title">
       <div className="hero-glow" aria-hidden="true" />
       <div className="hero-grain" aria-hidden="true" />
+      <HeroEnvironment />
       <div className="hero-topline">
         <span>PORTFOLIO / 2026</span>
         <span>CURIOUS MIND. BUILDER AT HEART.</span>
@@ -27,20 +33,42 @@ export function Hero() {
         experiences.
         <ArrowUpRight size={24} strokeWidth={1.4} />
       </p>
-      <h1 id="hero-title" className="hero-name">
-        <span className="hero-iam name-line">
-          <span className="name-line-inner">I AM</span>
-        </span>
-        <span className="name-line">
-          <span className="name-line-inner">MAYANK</span>
-        </span>
-        <span className="name-line">
-          <span className="name-line-inner">
-            THAPLIYAL<span className="name-period">.</span>
+      <div className="hero-identity">
+        <h1 id="hero-title" className="hero-name">
+          <span className="hero-iam name-line">
+            <span className="name-line-inner">I AM</span>
           </span>
-        </span>
-        <span className="sr-only"> — Aspiring Software Engineer & Full-Stack Developer</span>
-      </h1>
+          <span className="name-line">
+            <span className="name-line-inner">MAYANK</span>
+          </span>
+          <span className="name-line">
+            <span className="name-line-inner">
+              THAPLIYAL<span className="name-period">.</span>
+            </span>
+          </span>
+          <span className="sr-only"> — Aspiring Software Engineer & Full-Stack Developer</span>
+        </h1>
+        <p className="hero-supporting">
+          MCA Student · Full-Stack Developer
+          <br />
+          AI/ML Enthusiast · Problem Solver
+        </p>
+        <div className="hero-actions">
+          <ButtonLink href="#projects">
+            View My Work <ArrowUpRight size={16} />
+          </ButtonLink>
+          <Button
+            variant="secondary"
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
+              setIntroOpen(true);
+            }}
+            aria-haspopup="dialog"
+          >
+            Quick Intro <ArrowUpRight size={16} />
+          </Button>
+        </div>
+      </div>
       <div className="hero-role">
         <span className="role-asterisk" aria-hidden="true">
           ✳
@@ -69,8 +97,12 @@ export function Hero() {
           <a href={socials.linkedin} target="_blank" rel="noopener noreferrer">
             LINKEDIN <ArrowUpRight size={13} />
           </a>
+          <a href={socials.email} aria-label="Email Mayank">
+            EMAIL <ArrowUpRight size={13} />
+          </a>
         </div>
       </div>
+      {introOpen && <HeroIntro onClose={() => setIntroOpen(false)} />}
     </section>
   );
 }

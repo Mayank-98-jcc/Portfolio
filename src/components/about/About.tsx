@@ -31,8 +31,9 @@ export function About() {
                 engineering, full-stack development, and AI-powered applications.
               </p>
               <p className="muted">
-                I enjoy turning ideas into working products, exploring new technologies, and
-                understanding how software systems fit together.
+                I learn by turning ideas into working products, strengthening my data structures and
+                algorithms foundations, and exploring AI/ML and Generative AI in practical
+                applications.
               </p>
               <a href="#contact" className="text-link">
                 LET’S GET TO KNOW EACH OTHER <ArrowUpRight size={15} />

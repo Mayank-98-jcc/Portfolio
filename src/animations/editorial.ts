@@ -2,17 +2,13 @@ import gsap from 'gsap';
 
 export function heroEntrance(timeline: gsap.core.Timeline, start: number) {
   timeline
-    .from('.hero-glow', { opacity: 0, duration: 1 }, start)
+    .from('.hero-glow, .hero-environment', { opacity: 0, duration: 1 }, start)
     .from(
       '.navbar',
       { y: -20, opacity: 0, duration: 0.7, clearProps: 'transform,opacity' },
       start + 0.1,
     )
-    .from(
-      '.greeting-word',
-      { y: 50, opacity: 0, filter: 'blur(10px)', stagger: 0.1, duration: 1, clearProps: 'filter' },
-      start + 0.2,
-    )
+    .from('.greeting-word', { y: 24, opacity: 0, stagger: 0.08, duration: 0.8 }, start + 0.2)
     .from(
       '.portrait-reveal-layer',
       {
@@ -21,19 +17,19 @@ export function heroEntrance(timeline: gsap.core.Timeline, start: number) {
         y: 14,
         scale: 1.03,
         opacity: 0,
-        duration: 1.3,
+        duration: 1,
         clearProps: 'transform,opacity',
       },
       start + 0.35,
     )
-    .from('.name-line-inner', { yPercent: 110, stagger: 0.1, duration: 0.85 }, start + 0.7)
-    .from('.hero-note', { y: 25, opacity: 0, duration: 0.7 }, start + 1)
-    .from('.hero-role', { y: 25, opacity: 0, duration: 0.7 }, start + 1.15)
-    .from('.hero-availability', { scale: 0.9, opacity: 0, duration: 0.6 }, start + 1.35)
+    .from('.name-line-inner', { yPercent: 110, stagger: 0.1, duration: 0.85 }, start + 0.4)
+    .from('.hero-note', { y: 25, opacity: 0, duration: 0.7 }, start + 0.6)
+    .from('.hero-role', { y: 25, opacity: 0, duration: 0.7 }, start + 0.7)
+    .from('.hero-availability', { scale: 0.9, opacity: 0, duration: 0.6 }, start + 0.8)
     .from(
-      '.hero-bottom, .hero-topline',
+      '.hero-bottom, .hero-topline, .hero-supporting, .hero-actions',
       { opacity: 0, duration: 0.6, clearProps: 'opacity' },
-      start + 1.6,
+      start + 0.95,
     );
 }
 
@@ -117,28 +113,50 @@ export function editorialReveals() {
       scrollTrigger: { trigger: row, start: 'top 92%', once: true },
     }),
   );
-  gsap.from('.contact-line-inner', {
-    yPercent: 110,
-    stagger: 0.12,
-    duration: 1,
-    ease: 'power3.out',
-    scrollTrigger: { trigger: '#contact-title', start: 'top 92%', once: true },
-  });
+  gsap
+    .timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: { trigger: '#contact', start: 'top 78%', once: true },
+    })
+    .from('.contact-environment', { opacity: 0, duration: 1.2 }, 0)
+    .from('.contact-kicker', { opacity: 0, y: 10, duration: 0.5 }, 0.15)
+    .from(
+      '.contact-line:not(.contact-serif-line) .contact-line-inner',
+      {
+        clipPath: 'inset(0 0 100% 0)',
+        y: 16,
+        stagger: 0.13,
+        duration: 0.8,
+        clearProps: 'clipPath,transform',
+      },
+      0.3,
+    )
+    .from(
+      '.contact-serif-line',
+      { opacity: 0, y: 16, duration: 0.8, clearProps: 'transform,opacity' },
+      0.55,
+    )
+    .from(
+      '.contact-star',
+      { scale: 0.6, opacity: 0, duration: 0.6, clearProps: 'transform,opacity' },
+      0.75,
+    )
+    .from(
+      '.contact-editorial, .contact-copy',
+      { opacity: 0, y: 14, stagger: 0.12, duration: 0.7, clearProps: 'transform,opacity' },
+      0.7,
+    )
+    .from(
+      '.contact-form-details',
+      { opacity: 0, y: 10, duration: 0.6, clearProps: 'transform,opacity' },
+      1,
+    );
 }
 
 export function heroScroll() {
   const scrollTrigger = { trigger: '#home', start: 'top top', end: 'bottom top', scrub: 1 };
   gsap.to('.hero-glow', { y: -25, ease: 'none', scrollTrigger });
-  gsap.to('.portrait-scroll-layer', {
-    y: -60,
-    scale: 0.99,
-    opacity: 0.95,
-    ease: 'none',
-    scrollTrigger,
-  });
-  gsap.to('.hero-greeting', { y: -80, ease: 'none', scrollTrigger });
-  gsap.to('.hero-name', { y: -40, ease: 'none', scrollTrigger });
-  gsap.to('.hero-note, .hero-role', { '--scroll-right': '-25px', ease: 'none', scrollTrigger });
+  // Portrait and heading stay anchored; depth motion belongs to the WebGL scene.
   gsap.to('.about-visual .project-preview-frame', {
     y: -12,
     ease: 'none',

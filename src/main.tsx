@@ -16,6 +16,8 @@ import './styles/animations.css';
 import './styles/editorial-refinement.css';
 import './styles/sections.css';
 import './styles/hero-composition.css';
+import './styles/hero-scene.css';
+import './styles/contact-cinematic.css';
 import App from './App';
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

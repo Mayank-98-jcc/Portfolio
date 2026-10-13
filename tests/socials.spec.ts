@@ -49,3 +49,25 @@ test('contact email draft preserves the recipient and safely encodes message con
   expect([...mailto.searchParams.keys()]).toEqual(['subject', 'body']);
   expect(mailto.hash).toBe('');
 });
+
+test('active navigation returns to Home after Work at desktop, tablet and mobile widths', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  for (const [width, height] of [
+    [1440, 900],
+    [1280, 800],
+    [1024, 768],
+    [768, 1024],
+    [390, 844],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.getByRole('link', { name: 'View My Work', exact: true }).click();
+    await expect(page.locator('.desktop-nav a[aria-current]')).toHaveAttribute('href', '#projects');
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
+    await expect(page.locator('.desktop-nav a[aria-current]')).toHaveAttribute('href', '#home');
+  }
+});

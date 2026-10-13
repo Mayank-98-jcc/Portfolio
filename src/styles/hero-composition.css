@@ -11,8 +11,7 @@
   display: none;
 }
 .hero-glow {
-  /* Leave room for the existing ±12px pointer parallax without widening the page. */
-  inset: 0 12px;
+  inset: 0;
   filter: none;
   background:
     radial-gradient(ellipse at 53% 52%, #e8dac5 0%, #ede1d0 24%, #f5edde80 52%, transparent 74%),

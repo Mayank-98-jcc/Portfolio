@@ -1,10 +1,11 @@
 :root {
-  --paper: #fafaf8;
+  --paper: #faf7f0;
   --ink: #080808;
-  --muted: #666666;
-  --orange: #ff9b45;
+  --muted: #686158;
+  --warm-gray: #817b73;
+  --orange: #f36b21;
   --yellow: #ffe2a3;
-  --cream: #f3f1eb;
+  --cream: #f5ebdd;
   --border: #e6e4de;
   --serif: 'Instrument Serif', Georgia, serif;
   --display: 'Anton', Impact, sans-serif;

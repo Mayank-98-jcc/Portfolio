@@ -9,23 +9,25 @@ export function Navbar() {
   const [compact, setCompact] = useState(false);
   const [active, setActive] = useState('home');
   useEffect(() => {
-    const scroll = () => setCompact(window.scrollY > 36);
+    const sections = navigation
+      .map(({ id }) => document.getElementById(id))
+      .filter((section) => section !== null);
+    const scroll = () => {
+      setCompact(window.scrollY > 36);
+      // Track the section beneath the actual sticky header. Percentage root margins
+      // could collapse the old observer band on wide, short viewports and miss Home.
+      const marker = (menu.current?.closest('header')?.getBoundingClientRect().bottom ?? 91) + 40;
+      const current = sections
+        .filter((section) => section.getBoundingClientRect().top <= marker)
+        .at(-1);
+      setActive(current?.id ?? 'home');
+    };
+    scroll();
     window.addEventListener('scroll', scroll, { passive: true });
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        });
-      },
-      { rootMargin: '-15% 0px -60% 0px' },
-    );
-    navigation.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    window.addEventListener('resize', scroll);
     return () => {
       window.removeEventListener('scroll', scroll);
-      observer.disconnect();
+      window.removeEventListener('resize', scroll);
     };
   }, []);
   useEffect(() => {
@@ -42,7 +44,10 @@ export function Navbar() {
     };
   }, [open]);
   return (
-    <header className={`navbar ${compact ? 'is-compact' : ''}`}>
+    <header
+      className={`navbar ${compact ? 'is-compact' : ''}`}
+      data-theme={active === 'contact' ? 'dark' : 'light'}
+    >
       <a className="wordmark" href="#home" aria-label="Mayank, home">
         Mayank<span>.</span>
       </a>
